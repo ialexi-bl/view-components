@@ -30,7 +30,9 @@ export interface ViewTemplateConstructor<P> {
 }
 
 export interface ViewComponentConstructor {
-  <P, C extends React.ElementType<P>>(Component: C): ViewTemplateConstructor<P>
+  <C extends React.ElementType<any>>(Component: C): ViewTemplateConstructor<
+    React.ComponentPropsWithRef<C>
+  >
 }
 
 type ViewFunction = ViewComponentConstructor &
@@ -39,5 +41,7 @@ type ViewFunction = ViewComponentConstructor &
       JSX.IntrinsicElements[K]
     >
   }
+
+declare const view: ViewFunction
 
 export default view
