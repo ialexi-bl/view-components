@@ -23,16 +23,16 @@ interface InterpolatedArray<P> {
 export type ViewComponent<P> = React.ComponentType<P>
 
 export interface ViewTemplateConstructor<P> {
-  (
+  <E extends { [key: string]: any } = {}>(
     strings: TemplateStringsArray,
-    ...interpolations: Interpolation<P>[]
-  ): ViewComponent<P>
+    ...interpolations: Interpolation<P & E>[]
+  ): ViewComponent<P & E>
 }
 
 export interface ViewComponentConstructor {
-  <C extends React.ElementType<any>>(Component: C): ViewTemplateConstructor<
-    React.ComponentPropsWithRef<C>
-  >
+  <C extends React.ElementType<any> = 'div'>(
+    Component: C
+  ): ViewTemplateConstructor<React.ComponentPropsWithRef<C>>
 }
 
 type ViewFunction = ViewComponentConstructor &
