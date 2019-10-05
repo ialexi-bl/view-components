@@ -1,0 +1,16 @@
+{
+  "name": "view-components",
+  "version": "1.0.0",
+  "description": "A set of small functions for stateless view react components",
+  "main": "dist/index.js",
+  "module": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0"
+  },
+  "author": "ialexi",
+  "license": "ISC"
+}

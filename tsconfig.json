@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "outFile": "index.js",
+    "skipLibCheck": true
+  },
+  "include": {
+    "index.tsx"
+  }
+}
