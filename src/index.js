@@ -211,6 +211,32 @@ function stringify(classNames, props) {
   return normalize(result.join(' '))
 }
 
+function getComponentName(target) {
+  return (
+    (process.env.NODE_ENV !== 'production'
+      ? typeof target === 'string' && target
+      : false) ||
+    target.displayName ||
+    target.name ||
+    'Component'
+  )
+}
+
+function isTag(target) {
+  return (
+    typeof target === 'string' &&
+    (process.env.NODE_ENV !== 'production'
+      ? target.charAt(0) === target.charAt(0).toLowerCase()
+      : true)
+  )
+}
+
+function generateDisplayName(target) {
+  return isTag(target)
+    ? 'styled.' + target
+    : 'Styled(' + getComponentName(target) + ')'
+}
+
 function createViewComponent(Component, strings, interpolations) {
   let classNames = flatten(interleave(strings, interpolations))
   const isStatic = !classNames.some(x => typeof x === 'function')
@@ -219,11 +245,16 @@ function createViewComponent(Component, strings, interpolations) {
     classNames = normalize(classNames.join(' '))
   }
 
-  return function ViewComponent(props) {
+  const forwardRef = function forwardRef(props, ref) {
+    return React.create
+  }
+
+  function ViewComponent(props, ref) {
     const { className, ...rest } = props
 
     return (
       <Component
+        ref={ref}
         className={
           (className ? className + ' ' : '') +
           (isStatic ? classNames : stringify(classNames, props))
@@ -232,6 +263,10 @@ function createViewComponent(Component, strings, interpolations) {
       />
     )
   }
+
+  ViewComponent.displayName = generateDisplayName(Component)
+
+  return React.forwardRef(ViewComponent)
 }
 
 function createTemplateConstructor(Component) {

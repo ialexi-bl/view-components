@@ -5,5 +5,5 @@
     "outFile": "index.js",
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["./src/**/*"]
 }
