@@ -235,7 +235,7 @@ function createClassNameGetter(functions) {
  *  getClassNames: ((props: object) => string) | null
  * }}
  */
-function format(interpolations) {
+function formatInterpolations(interpolations) {
   const constants = []
   const functions = []
 
@@ -255,6 +255,9 @@ function format(interpolations) {
   }
 }
 
+/**
+ * Tries to retrieve component's display name
+ */
 function getComponentName(target) {
   return (
     (process.env.NODE_ENV !== 'production'
@@ -266,6 +269,9 @@ function getComponentName(target) {
   )
 }
 
+/**
+ * Check whether the component is html tag
+ */
 function isTag(target) {
   return (
     typeof target === 'string' &&
@@ -275,6 +281,9 @@ function isTag(target) {
   )
 }
 
+/**
+ * Creates a display name for a component
+ */
 function generateDisplayName(target) {
   return isTag(target)
     ? 'view.' + target
@@ -282,7 +291,7 @@ function generateDisplayName(target) {
 }
 
 function createViewComponent(Component, strings, interpolations) {
-  let { constants, getClassNames, isStatic } = format(
+  let { constants, getClassNames, isStatic } = formatInterpolations(
     interleave(strings, interpolations)
   )
 
