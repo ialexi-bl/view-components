@@ -109,7 +109,7 @@ function createClassNameGetter(functions) {
  */
 
 
-function format(interpolations) {
+function formatInterpolations(interpolations) {
   var constants = [];
   var functions = [];
   flatten(interpolations).forEach(function (x) {
@@ -123,24 +123,36 @@ function format(interpolations) {
     getClassNames: functions.length && createClassNameGetter(functions)
   };
 }
+/**
+ * Tries to retrieve component's display name
+ */
+
 
 function getComponentName(target) {
   return (process.env.NODE_ENV !== 'production' ? typeof target === 'string' && target : false) || target.displayName || target.name || 'Component';
 }
+/**
+ * Check whether the component is html tag
+ */
+
 
 function isTag(target) {
   return typeof target === 'string' && (process.env.NODE_ENV !== 'production' ? target.charAt(0) === target.charAt(0).toLowerCase() : true);
 }
+/**
+ * Creates a display name for a component
+ */
+
 
 function generateDisplayName(target) {
   return isTag(target) ? 'view.' + target : 'View(' + getComponentName(target) + ')';
 }
 
 function createViewComponent(Component, strings, interpolations) {
-  var _prepare = prepare(interleave(strings, interpolations)),
-      constants = _prepare.constants,
-      getClassNames = _prepare.getClassNames,
-      isStatic = _prepare.isStatic;
+  var _formatInterpolations = formatInterpolations(interleave(strings, interpolations)),
+      constants = _formatInterpolations.constants,
+      getClassNames = _formatInterpolations.getClassNames,
+      isStatic = _formatInterpolations.isStatic;
 
   function ViewComponent(props, ref) {
     var className = props.className,
