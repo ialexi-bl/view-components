@@ -138,6 +138,12 @@ const domElements = [
   'tspan'
 ]
 
+/**
+ * Merges strings and interpolations
+ * @param {string[]} strings
+ * @param {any[]} interpolations
+ * @returns {any[]}
+ */
 function interleave(strings, interpolations) {
   var result = [strings[0]]
 
@@ -148,6 +154,10 @@ function interleave(strings, interpolations) {
   return result
 }
 
+/**
+ * Transforms an object into classNames array
+ * @param {Object<string, boolean | function>} obj
+ */
 function objToClassNames(obj) {
   return Object.keys(obj)
     .map(x =>
@@ -162,53 +172,87 @@ function objToClassNames(obj) {
     .filter(x => x)
 }
 
-function flatten(interpolation) {
-  if (Array.isArray(interpolation)) {
-    let classNames = []
-    for (let i = 0, s = interpolation.length; i < s; i++) {
-      const result = flatten(interpolation[i])
-
-      if (!result) continue
-      else if (Array.isArray(result)) classNames.push.apply(classNames, result)
-      else classNames.push(result)
-    }
-    return classNames
+/**
+ * Flattens an array of interpolations, formats an object
+ * or puts a primitive into an array
+ * @param {any} interpolations
+ * @return {any[]}
+ */
+function flatten(interpolations) {
+  if (!Array.isArray(interpolations)) {
+    return typeof interpolations === 'object' && interpolations !== null
+      ? objToClassNames(interpolations)
+      : [interpolations]
   }
 
-  if (!interpolation) {
-    return null
-  }
-
-  if (typeof interpolation === 'object') {
-    return objToClassNames(interpolation)
-  }
-
-  if (typeof interpolation === 'function') {
-    return interpolation
-  }
-
-  return interpolation.toString().trim() || null
+  return interpolations.reduce(
+    (accumulator, interpolation) =>
+      accumulator.concat(
+        typeof interpolation === 'object' && interpolation != null
+          ? flatten(objToClassNames(interpolation))
+          : Array.isArray(interpolation)
+          ? flatten(interpolation)
+          : interpolation
+      ),
+    []
+  )
 }
 
 function normalize(str) {
   return str.trim().replace(/\s{2,}/g, ' ')
 }
 
-function stringify(classNames, props) {
-  const result = classNames.map(x =>
-    typeof x === 'function' ? flatten([x(props)]) : x
-  )
+/**
+ * Creates dynamic classNames getter
+ * @param {((props: object) => any)[]} functions
+ * @returns {(props: object) => string}
+ */
+function createClassNameGetter(functions) {
+  return props => {
+    const classNames = flatten(functions.map(x => x(props)))
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      classNames.some(x => typeof x === 'function')
+    ) {
+      console.error('Function in View component may not return other functions')
+    }
 
-  if (
-    process.env.NODE_ENV === 'production' &&
-    result.some(x => typeof x === 'function')
-  ) {
-    console.error(
-      'Interpolated functions may not return other functions, because they will not be called.'
+    return normalize(
+      classNames
+        .map(x => String(x).trim())
+        .filter(x => x)
+        .join(' ')
     )
   }
+}
 
-  return normalize(result.join(' '))
+/**
+ * Separates constant interpolations and dynamic functions
+ * @param {any[]} interpolations
+ * @returns {{
+ *  constants: string[],
+ *  isStatic: boolean,
+ *  getClassNames: ((props: object) => string) | null
+ * }}
+ */
+function format(interpolations) {
+  const constants = []
+  const functions = []
+
+  flatten(interpolations).forEach(
+    x =>
+      x &&
+      (typeof x !== 'string' || x.trim()) &&
+      (typeof x === 'function'
+        ? functions.push(x)
+        : constants.push(String(x).trim()))
+  )
+
+  return {
+    constants: normalize(constants.filter(x => x).join(' ')),
+    isStatic: !!functions.length,
+    getClassNames: functions.length && createClassNameGetter(functions)
+  }
 }
 
 function getComponentName(target) {
@@ -233,21 +277,14 @@ function isTag(target) {
 
 function generateDisplayName(target) {
   return isTag(target)
-    ? 'styled.' + target
-    : 'Styled(' + getComponentName(target) + ')'
+    ? 'view.' + target
+    : 'View(' + getComponentName(target) + ')'
 }
 
 function createViewComponent(Component, strings, interpolations) {
-  let classNames = flatten(interleave(strings, interpolations))
-  const isStatic = !classNames.some(x => typeof x === 'function')
-
-  if (isStatic) {
-    classNames = normalize(classNames.join(' '))
-  }
-
-  const forwardRef = function forwardRef(props, ref) {
-    return React.create
-  }
+  let { constants, getClassNames, isStatic } = prepare(
+    interleave(strings, interpolations)
+  )
 
   function ViewComponent(props, ref) {
     const { className, ...rest } = props
@@ -257,7 +294,8 @@ function createViewComponent(Component, strings, interpolations) {
         ref={ref}
         className={
           (className ? className + ' ' : '') +
-          (isStatic ? classNames : stringify(classNames, props))
+          (constants && constants + ' ') +
+          (isStatic ? '' : getClassNames(props))
         }
         {...rest}
       />
