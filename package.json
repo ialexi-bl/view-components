@@ -1,12 +1,12 @@
 {
   "name": "view-components",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A set of small functions for stateless view react components",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "webpack; babel src/index.js --out-file dist/index.esm.js"
   },
   "peerDependencies": {
     "react": "^16.0.0"
@@ -22,6 +22,8 @@
     "@babel/cli": "^7.6.2",
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
-    "@babel/preset-react": "^7.0.0"
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.6",
+    "webpack": "^4.41.0"
   }
 }

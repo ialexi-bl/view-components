@@ -18,6 +18,12 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var domElements = ['a', 'abbr', 'address', 'area', 'article', 'aside', 'audio', 'b', 'base', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'legend', 'li', 'link', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meta', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'picture', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'var', 'video', 'wbr', 'circle', 'clipPath', 'defs', 'ellipse', 'foreignObject', 'g', 'image', 'line', 'linearGradient', 'marker', 'mask', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'stop', 'svg', 'text', 'tspan'];
+/**
+ * Merges strings and interpolations
+ * @param {string[]} strings
+ * @param {any[]} interpolations
+ * @returns {any[]}
+ */
 
 function interleave(strings, interpolations) {
   var result = [strings[0]];
@@ -28,6 +34,11 @@ function interleave(strings, interpolations) {
 
   return result;
 }
+/**
+ * Transforms an object into classNames array
+ * @param {Object<string, boolean | function>} obj
+ */
+
 
 function objToClassNames(obj) {
   return Object.keys(obj).map(function (x) {
@@ -40,50 +51,77 @@ function objToClassNames(obj) {
     return x;
   });
 }
+/**
+ * Flattens an array of interpolations, formats an object
+ * or puts a primitive into an array
+ * @param {any} interpolations
+ * @return {any[]}
+ */
 
-function flatten(interpolation) {
-  if (Array.isArray(interpolation)) {
-    var classNames = [];
 
-    for (var i = 0, s = interpolation.length; i < s; i++) {
-      var result = flatten(interpolation[i]);
-      if (!result) continue;else if (Array.isArray(result)) classNames.push.apply(classNames, result);else classNames.push(result);
-    }
-
-    return classNames;
+function flatten(interpolations) {
+  if (!Array.isArray(interpolations)) {
+    return _typeof(interpolations) === 'object' && interpolations !== null ? objToClassNames(interpolations) : [interpolations];
   }
 
-  if (!interpolation) {
-    return null;
-  }
-
-  if (_typeof(interpolation) === 'object') {
-    return objToClassNames(interpolation);
-  }
-
-  if (typeof interpolation === 'function') {
-    return interpolation;
-  }
-
-  return interpolation.toString().trim() || null;
+  return interpolations.reduce(function (accumulator, interpolation) {
+    return accumulator.concat(_typeof(interpolation) === 'object' && interpolation != null ? flatten(objToClassNames(interpolation)) : Array.isArray(interpolation) ? flatten(interpolation) : interpolation);
+  }, []);
 }
 
 function normalize(str) {
   return str.trim().replace(/\s{2,}/g, ' ');
 }
+/**
+ * Creates dynamic classNames getter
+ * @param {((props: object) => any)[]} functions
+ * @returns {(props: object) => string}
+ */
 
-function stringify(classNames, props) {
-  var result = classNames.map(function (x) {
-    return typeof x === 'function' ? flatten([x(props)]) : x;
+
+function createClassNameGetter(functions) {
+  return function (props) {
+    var classNames = flatten(functions.map(function (x) {
+      return x(props);
+    }));
+
+    if (process.env.NODE_ENV !== 'production' && classNames.some(function (x) {
+      return typeof x === 'function';
+    })) {
+      console.error('Function in View component may not return other functions');
+    }
+
+    return normalize(classNames.map(function (x) {
+      return String(x).trim();
+    }).filter(function (x) {
+      return x;
+    }).join(' '));
+  };
+}
+/**
+ * Separates constant interpolations and dynamic functions
+ * @param {any[]} interpolations
+ * @returns {{
+ *  constants: string[],
+ *  isStatic: boolean,
+ *  getClassNames: ((props: object) => string) | null
+ * }}
+ */
+
+
+function format(interpolations) {
+  var constants = [];
+  var functions = [];
+  flatten(interpolations).forEach(function (x) {
+    return x && (typeof x !== 'string' || x.trim()) && (typeof x === 'function' ? functions.push(x) : constants.push(String(x).trim()));
   });
-
-  if (process.env.NODE_ENV === 'production' && result.some(function (x) {
-    return typeof x === 'function';
-  })) {
-    console.error('Interpolated functions may not return other functions, because they will not be called.');
-  }
-
-  return normalize(result.join(' '));
+  return {
+    constants: normalize(constants.filter(function (x) {
+      return x;
+    }).join(' ')),
+    isStatic: !!functions.length,
+    getClassNames: functions.length && createClassNameGetter(functions)
+  };
 }
 
 function getComponentName(target) {
@@ -95,22 +133,14 @@ function isTag(target) {
 }
 
 function generateDisplayName(target) {
-  return isTag(target) ? 'styled.' + target : 'Styled(' + getComponentName(target) + ')';
+  return isTag(target) ? 'view.' + target : 'View(' + getComponentName(target) + ')';
 }
 
 function createViewComponent(Component, strings, interpolations) {
-  var classNames = flatten(interleave(strings, interpolations));
-  var isStatic = !classNames.some(function (x) {
-    return typeof x === 'function';
-  });
-
-  if (isStatic) {
-    classNames = normalize(classNames.join(' '));
-  }
-
-  var forwardRef = function forwardRef(props, ref) {
-    return _react["default"].create;
-  };
+  var _prepare = prepare(interleave(strings, interpolations)),
+      constants = _prepare.constants,
+      getClassNames = _prepare.getClassNames,
+      isStatic = _prepare.isStatic;
 
   function ViewComponent(props, ref) {
     var className = props.className,
@@ -118,7 +148,7 @@ function createViewComponent(Component, strings, interpolations) {
 
     return _react["default"].createElement(Component, _extends({
       ref: ref,
-      className: (className ? className + ' ' : '') + (isStatic ? classNames : stringify(classNames, props))
+      className: (className ? className + ' ' : '') + (constants && constants + ' ') + (isStatic ? '' : getClassNames(props))
     }, rest));
   }
 
