@@ -119,7 +119,7 @@ function formatInterpolations(interpolations) {
     constants: normalize(constants.filter(function (x) {
       return x;
     }).join(' ')),
-    isStatic: !!functions.length,
+    isStatic: !functions.length,
     getClassNames: functions.length && createClassNameGetter(functions)
   };
 }
