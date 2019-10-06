@@ -282,7 +282,7 @@ function generateDisplayName(target) {
 }
 
 function createViewComponent(Component, strings, interpolations) {
-  let { constants, getClassNames, isStatic } = prepare(
+  let { constants, getClassNames, isStatic } = format(
     interleave(strings, interpolations)
   )
 
