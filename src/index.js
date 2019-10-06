@@ -250,7 +250,7 @@ function formatInterpolations(interpolations) {
 
   return {
     constants: normalize(constants.filter(x => x).join(' ')),
-    isStatic: !!functions.length,
+    isStatic: !functions.length,
     getClassNames: functions.length && createClassNameGetter(functions)
   }
 }
