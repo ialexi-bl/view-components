@@ -9,6 +9,7 @@
   - [Making components dynamic](#functions)
   - [Objects and arrays](#objects)
 - [Usage with styled components](#styled-components)
+- [Types](#types)
 
 ## Motivation
 
@@ -246,5 +247,30 @@ styledView.button`
   animationDuration: getAnimationDuration(props)
 })`
   animation-duration: ${props => props.animationDuration}s;
+`
+```
+
+## Types
+
+The functions returned by `view(...)` and `styledView(...)` are generics. You can define the props you need by passing an interface:
+
+```typescript
+import view from 'view-components'
+
+const Button = view.button<{ disabled?: boolean }>`
+  ${props => props.disabled && 'disabled'}
+`
+```
+
+For `styledView` the interface you pass will also be forwarded to `styled-components` (because view components pass all their props to the wrapped styled components):
+
+```typescript
+import styledView from 'view-components/styled'
+
+const Button = styledView.button<{ disabled?: boolean }>`
+  ${props => props.disabled && 'disabled'} // props.disabled is typed
+``
+  // props.disabled is typed as well
+  background: ${props.disabled ? 'grey' : 'palevioletred'};
 `
 ```
