@@ -1,10 +1,20 @@
 # View Components
 
+## Table of contents
+
+- [Motivation](#-motivation)
+- [Installation](#-installation)
+- [Usage](#-usage)
+  - [Basics](#-usage)
+  - [Making components dynamic](#-functions)
+  - [Objects and arrays](#-objects)
+- [Usage with styled components](#-styled-components)
+
 ## Motivation
 
 This library has been inspired by [`styled-components`](https://www.styled-components.com/) and [`classnames`](https://github.com/JedWatson/classnames)
 
-`styled-components` is an awesome library, it's very convenient if you are writing your styles manually. Nevertheless, it is harder to deal with it when you want to use a CSS framework, such as Bootstrap or Tailwind. This tiny zero dependency library provides an easy way to create small stateless view components by assigning the CSS classNames conditionally.
+`styled-components` is an awesome library, it's very convenient if you are writing your styles manually. Nevertheless, it is harder to deal with it when you want to use a CSS framework, such as Bootstrap or Tailwind. This small library with one little dependency provides an easy way to create small stateless view components by assigning the CSS classNames conditionally.
 
 ## Installation
 
@@ -116,7 +126,7 @@ const Button = view.button`
   ${{
     foo: true,
     bar: false,
-    large: props => props.size === 'lg'
+    large: props => props.size === 'lg',
   }}
 `
 ```
@@ -137,8 +147,8 @@ const Button = view.button`
     props => props.disabled && 'disabled',
     {
       foobar: true,
-      baz: false
-    }
+      baz: false,
+    },
   ]}
 `
 ```
@@ -153,7 +163,7 @@ const Button = view.button`
   ${props => props.disabled && 'disabled'}
   ${{
     foobar: true,
-    baz: false
+    baz: false,
   }}
 `
 ```
@@ -192,3 +202,48 @@ function FancySwitch = view(SuperComplicatedSwitch)`
 ```
 
 This `view` function has some nice shortcuts for most HTML elements, exported as its properties. So `view.img` is the same as `view('img')`.
+
+## Styled-components
+
+If you want to use this library along with the [styled-components](https://www.styled-components.com/), then you can use some shortcuts. Basically you could do something like
+
+```javascript
+import styled from 'styled-components'
+import view from 'view-components'
+
+const Button = styled(
+  view`
+    px-4 py-2 rounded
+    ${props => props.disabled && 'bg-secondary'}
+  `
+)`
+  transition: width 200ms;
+  width: ${props => (props.disabled ? '10%' : '70%')};
+`
+```
+
+That works, but it's not very convenient. There are is a nice function in the `view-components/styled` module, that makes it look better:
+
+```javascript
+import styledView from 'view-components/styled'
+
+const Button = styledView.button`
+  px-4 py-2 rounded
+  ${props => props.disabled && 'bg-secondary'}
+``
+  transition: width 200ms;
+  width: ${props => (props.disabled ? '10%' : '70%')};
+`
+```
+
+This function makes use of the `attrs` method, provided by `styled-components`. Calling <code>styledView(...)\`...\`</code> is the same as calling `styled(...)` except it combines `styled-components` with `view-components`. You can use `attrs` as well:
+
+```javascript
+styledView.button`
+  className1 className2
+`.attrs(props => {
+  animationDuration: getAnimationDuration(props)
+})`
+  animation-duration: ${props => props.animationDuration}s;
+`
+```

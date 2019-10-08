@@ -1,0 +1,9 @@
+{
+  "name": "view-components/styled",
+  "private": true,
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
+  "peerDependencies": {
+    "styled-components": "^4.3.0"
+  }
+}

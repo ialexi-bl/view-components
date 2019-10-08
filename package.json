@@ -1,15 +1,17 @@
 {
   "name": "view-components",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "A set of small functions for stateless view react components",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack; babel src/index.js --out-file dist/index.esm.js"
+    "build": "rollup -c --environment format:esm; rollup -c --environment format:cjs",
+    "prepublishOnly": "NODE_ENV=production npm run build"
   },
   "peerDependencies": {
-    "react": "^16.0.0"
+    "react": "^16.3.0",
+    "styled-components": "^4.3.0"
   },
   "keyword": [
     "view",
@@ -23,7 +25,13 @@
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
     "@babel/preset-react": "^7.0.0",
-    "babel-loader": "^8.0.6",
-    "webpack": "^4.41.0"
+    "rollup": "^1.23.1",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-terser": "^5.1.2",
+    "rollup-plugin-typescript2": "^0.24.3",
+    "typescript": "^3.6.3"
+  },
+  "dependencies": {
+    "@emotion/is-prop-valid": "^0.8.3"
   }
 }
