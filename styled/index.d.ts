@@ -25,7 +25,7 @@ export interface ViewTemplateConstructor<C, P> {
   <E extends { [key: string]: any } = {}>(
     strings: TemplateStringsArray,
     ...interpolations: Interpolation<P & E>[]
-  ): ThemedStyledFunction<C, DefaultTheme>
+  ): ThemedStyledFunction<C, DefaultTheme, E>
 }
 
 export interface ViewComponentConstructor {
@@ -37,6 +37,7 @@ export interface ViewComponentConstructor {
 type ViewFunction = ViewComponentConstructor &
   {
     [K in keyof JSX.IntrinsicElements]: ViewTemplateConstructor<
+      K,
       JSX.IntrinsicElements[K]
     >
   }
@@ -44,3 +45,4 @@ type ViewFunction = ViewComponentConstructor &
 declare const styledView: ViewFunction
 
 export default styledView
+
