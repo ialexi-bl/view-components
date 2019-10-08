@@ -2,13 +2,13 @@
 
 ## Table of contents
 
-- [Motivation](#-motivation)
-- [Installation](#-installation)
-- [Usage](#-usage)
-  - [Basics](#-usage)
-  - [Making components dynamic](#-functions)
-  - [Objects and arrays](#-objects)
-- [Usage with styled components](#-styled-components)
+- [Motivation](#motivation)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Basics](#usage)
+  - [Making components dynamic](#functions)
+  - [Objects and arrays](#objects)
+- [Usage with styled components](#styled-components)
 
 ## Motivation
 
@@ -236,7 +236,8 @@ const Button = styledView.button`
 `
 ```
 
-This function makes use of the `attrs` method, provided by `styled-components`. Calling <code>styledView(...)\`...\`</code> is the same as calling `styled(...)` except it combines `styled-components` with `view-components`. You can use `attrs` as well:
+**Notice, that you must have `styled-components` installed manually in order for this to work**
+This form is also a little bit faster (comparing to using styled-components and view-components separately), because it makes use of the `attrs` method, provided by `styled-components`. Calling <code>styledView(...)\`...\`</code> is the same as calling `styled(...)`, it just wraps styled component with the view component logic. After calling this, you can use it as if it was a normal styled component:
 
 ```javascript
 styledView.button`
