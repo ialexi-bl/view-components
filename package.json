@@ -13,12 +13,13 @@
     "react": "^16.3.0",
     "styled-components": "^4.3.0"
   },
+  "repository": "github:ialexi-bl/view-components",
   "keyword": [
     "view",
     "shortcuts",
     "classnames"
   ],
-  "author": "iAlexi-bl",
+  "author": "ialexi-bl",
   "license": "MIT",
   "devDependencies": {
     "@babel/cli": "^7.6.2",
